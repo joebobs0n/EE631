@@ -110,5 +110,6 @@ while True:
     cv.imshow("monk-hw1_p2", disp_frame)
     disp_frame = None
 
+print("")
 cap.release()
 cv.destroyAllWindows()
