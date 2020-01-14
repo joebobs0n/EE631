@@ -44,7 +44,7 @@ while True:
     else:
         pass
 
-    print("\r{} mode selected".format(mode), end="")
+    print("\rMode {} selected".format(mode), end="")
 
     disp_frame = []
     if mode == 0:
