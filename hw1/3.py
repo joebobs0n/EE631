@@ -1,38 +1,75 @@
 import cv2 as cv
 import numpy as np
-import imutils
 
-print("Hit ESC to exit feed")
+cont = True
+cap1 = cv.VideoCapture('ball_left_vid.avi')
+cap2 = cv.VideoCapture('ball_right_vid.avi')
+cap1.set(cv.CAP_PROP_FPS, 60)
+cap2.set(cv.CAP_PROP_FPS, 60)
 
-greenLower = (29, 86, 6)
-greenUpper = (64, 255, 255)
+delay_time = 10
+threshold_val = 10
+erode_dilate_it = 3
+frame_ctr = 0
+disp_left = []
+left_first = []
+disp_right = []
+right_first = []
+recordFlag = False
+vid_out = cv.VideoWriter('3.avi', cv.VideoWriter_fourcc('M', 'J', 'P', 'G'), 30, (1280, 480))
 
-cap = cv.VideoCapture(0)
-if not cap.isOpened():
-    print("Cannot open camera")
-    exit()
-cap.set(cv.CAP_PROP_FPS, 15)
+while cont:
+    ret1, frame_left = cap1.read()
+    ret2, frame_right = cap2.read()
 
-while True:
-    ret, frame = cap.read()
-    if not ret:
-        print("")
-        break
-    if cv.waitKey(1) == (27 & 0xFF):
-        break
+    if ret1 == ret2:
+        if ret1:
+            if frame_ctr is 0:
+                left_first = frame_left
+                right_first = frame_right
 
-    frame = imutils.resize(frame, width=600)
-    disp_frame = frame
-    blurred = cv.medianBlur(frame, 5)
-    gray = cv.cvtColor(blurred, cv.COLOR_BGR2GRAY)
+            disp_left = cv.absdiff(frame_left, left_first)
+            disp_right = cv.absdiff(frame_right, right_first)
 
-    circles = cv.HoughCircles(gray, cv.HOUGH_GRADIENT, 1.2, 100)
+            cv.cvtColor(disp_left, cv.COLOR_BGR2GRAY)
+            cv.cvtColor(disp_right, cv.COLOR_BGR2GRAY)
+            full = np.hstack((disp_left, disp_right))
 
-    if circles is not None:
-        for (x, y, r) in circles:
-            cv.circle(disp_frame, (x, y), r, (0, 0, 255), 2)
+            full = cv.threshold(full, threshold_val, 255, 0)[1]
+            eroded = cv.erode(full, None, iterations=erode_dilate_it)
+            dilated = cv.dilate(eroded, None, iterations=erode_dilate_it)
 
-    cv.imshow('monk-hw1_p3', disp_frame)
+            full_disp = np.hstack((frame_left, frame_right))
+            full_disp[np.where((dilated == [255, 255, 255]).all(axis=2))] = [0, 0, 255]
 
-cap.release()
+            cv.imshow('Ball Detect from Pitcher', full_disp)
+
+            frame_ctr += 1
+
+            if recordFlag:
+                vid_out.write(full_disp)
+        else:
+            cap1.set(cv.CAP_PROP_POS_AVI_RATIO, 0)
+            cap2.set(cv.CAP_PROP_POS_AVI_RATIO, 0)
+
+            frame_ctr = 0
+    elif ret1 != ret2:
+        print('one video finished, but the other did not')
+        cont = False
+    else:
+        print('reached impossible state')
+        cont = False
+
+    k = cv.waitKey(delay_time) & 0xFF
+    if k == 27:
+        cont = False
+    elif k == ord('c'):
+        recordFlag = not recordFlag
+    else:
+        pass
+
+cap1.release()
+cap2.release()
+vid_out.release()
 cv.destroyAllWindows()
+exit()
