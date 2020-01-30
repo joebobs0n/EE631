@@ -18,10 +18,10 @@ class ConfidenceDisp(NamedTuple):  # custom class to store pertinent information
 debugFlag = True  # flag indicating whether or not to printout debug statements to console
 beltThreshold = 30  # average of red, green, and blue max values for belt thresholding/detection
 YGThreshold = 70  # threshold between yellow and green values (since they have the same brightness channels)
-erodeIterations = 2  # erode iteration number
+erodeIterations = 3  # erode iteration number
 dilateIterations = 10  # dilate iteration number
 # initialize paramters for confidence display
-dispParams = ConfidenceDisp(orig=[8, 50], scale=[5, 15], spacing=8, filled=False, thickness=2)
+dispParams = ConfidenceDisp(orig=[8, 50], scale=[5, 15], spacing=8, filled=True, thickness=1)
 yellow = (31, 214, 239)  # yellow bgr value
 orange = (44, 141, 239)  # orange bgr value
 red = (75, 75, 207)  # red bgr value
@@ -30,7 +30,7 @@ green = (66, 183, 136)  # green bgr value
 
 # ----------------------------------------------------------------------------------- VARIABLES AND INITIALIZATIONS ----
 # cap = FleaCam()  # initialize flea camera to read video
-cap = cv.VideoCapture('2.avi')
+cap = cv.VideoCapture('prerecorded.avi')
 firstFrame = True  # flag indicating first tick of unconditional loop
 previousFrame = []  # array to hold previous frame data
 confidenceVals = [0, 0, 0, 0]  # confidence values for goldfish colors (yellow, orange, red, green)
@@ -62,11 +62,11 @@ while True:
             bgrAvg = np.average([b, g, r])
             if bgrAvg > beltThreshold:  # goldfish found in frame
                 if debugFlag:  # want print statments for debugging purposes
-                    print("RGB:({},{},{})".format(r, g, b))  # print out red value for current frame
-                # yellow if: B,G - avg over 70
+                    print(f"RGB:({r},{g},{b})")  # print out red value for current frame
+                # yellow if: B,G - avg over yellow green threshold
                 # orange if: B,R
                 # red if:    G,R
-                # green if:  B,G - avg under 70
+                # green if:  B,G - avg under yellow green threshold
                 if b > r and g > r:  # yellow or green detected
                     if bgrAvg > YGThreshold:  # yellow detected
                         confidenceVals[0] += 1  # increment confidence
@@ -85,6 +85,7 @@ while True:
             confidenceVals = [0, 0, 0, 0]  # reset confidence values to prepare for next goldfish
 
         previousFrame = frame  # store current frame as previous, preparatory to receiving a new frame next tick
+        cv.imshow('previous frame', previousFrame)
 
         displayFrame = frame  # store current frame into display frame for user feedback
         for i in range(len(confidenceVals)):  # work through possible goldfish colors for confidence display
@@ -106,7 +107,12 @@ while True:
                 clr = (255, 255, 255)  # white color
             fill = -1 if dispParams.filled else dispParams.thickness  # determine if rectangle will be filled in or not
             displayFrame = cv.rectangle(displayFrame, (p1x, p1y), (p2x, p2y), clr, fill)  # draw rectangle on frame
+
         cv.imshow('Goldfish Color Detection', displayFrame)  # display frame
     else:
         cap.set(cv.CAP_PROP_POS_AVI_RATIO, 0)
         firstFrame = True
+
+cap.release()
+cv.destroyAllWindows()
+exit()
