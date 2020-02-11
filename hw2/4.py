@@ -37,6 +37,6 @@ f.write(f'rotation vector:\n{rvec}\n\nrotation matrix:\n{rmat}\n\n')  # rotation
 f.write(f'translation vector:\n{tvec}')  # store translation vector
 f.close()  # close file
 
-np.savez('task4.npz', rvec=rvec, rmat=rmat, tvec=tvec)
+np.savez('task4.npz', rvec=rvec, rmat=rmat, tvec=tvec)  # rotation and translation information
 
 exit()  # close out script
