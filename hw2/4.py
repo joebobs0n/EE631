@@ -26,17 +26,19 @@ for line in f:  # work through each line
 image_points = np.asarray(image_points, np.float64)  # convert vector to array of float64
 world_points = np.asarray(world_points, np.float64)  # convert vector to array of float64
 
+# calculate estimate rotation and translation of realworld body
 rvec, tvec = cv.solvePnP(world_points, image_points, intr, dist)[1:3]
-rmat = cv.Rodrigues(rvec)[0]
+rmat = cv.Rodrigues(rvec)[0]  # convert rotation vector to rotation matrix
+tmat = cv.Rodrigues(tvec)[0]  # convert translation vector to translation matrix
 
-print(f'rotation vector:\n{rvec}\n\nrotation matrix:\n{rmat}\n')
-print(f'translation vector:\n{tvec}')
+print(f'rotation vector:\n{rvec}\n\nrotation matrix:\n{rmat}\n')  # printout rotation information
+print(f'translation vector:\n{tvec}\n\ntranslation matrix:\n{tmat}')  # printout translation information
 
 f = open('task4.txt', 'w')  # open file for writing results
 f.write(f'rotation vector:\n{rvec}\n\nrotation matrix:\n{rmat}\n\n')  # rotation vector and matrix
-f.write(f'translation vector:\n{tvec}')  # store translation vector
+f.write(f'translation vector:\n{tvec}\n\ntranslation matrix:\n{tmat}')  # store translation vector
 f.close()  # close file
 
-np.savez('task4.npz', rvec=rvec, rmat=rmat, tvec=tvec)  # rotation and translation information
+np.savez('task4.npz', rvec=rvec, rmat=rmat, tvec=tvec, tmat=tmat)  # save rotation and translation information
 
 exit()  # close out script
