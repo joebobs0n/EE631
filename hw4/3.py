@@ -1,6 +1,7 @@
 import cv2 as cv
 import numpy as np
 import imutils
+import matplotlib.pyplot as plt
 
 chessboard_dims = [10, 7]
 
@@ -17,11 +18,12 @@ xr = offset[1][0]
 yr = offset[1][1]
 
 fast_forward = 1
-slow_mo = 0
+slow_mo = 50
 var_delay = fast_forward
 threshold_val = 60
 itr = 2
 kernel = np.ones((5, 5), np.uint8)
+counter = 0
 
 left = np.load('resources/left_params.npz')
 intr_left = left['intr']
@@ -35,18 +37,21 @@ stereo = np.load('resources/stereo_params.npz')
 R = stereo['R']
 T = stereo['T']
 
-R1, R2, P1, P2, Q, roi1, roi2 = cv.stereoRectify(intr_left, dist_left, intr_right, dist_right, (640, 480), R, T)
+R1, R2, P1, P2, Q = cv.stereoRectify(intr_left, dist_left, intr_right, dist_right, (640, 480), R, T)[0:5]
+
+points = []
+camera_to_catcher = [11.5, 29.5, 21.5]
+
+file_out = open('3-points_and_impacts.txt', 'w')
 
 
 def find_circle_info(cont):
     if len(cont) > 0:
         c = max(cont, key=cv.contourArea)
-        moments = cv.moments(c)
-        center_x = int(moments["m10"] / moments["m00"])
-        center_y = int(moments["m01"] / moments["m00"])
-        return int(center_x), int(center_y)
+        ((center_x, center_y), center_radius) = cv.minEnclosingCircle(c)
+        return int(center_x), int(center_y), int(center_radius)
     else:
-        return -1, -1
+        return -1, -1, -1
 
 
 while True:
@@ -78,10 +83,10 @@ while True:
     left_cont = imutils.grab_contours(cv.findContours(left_dilate.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE))
     right_cont = imutils.grab_contours(cv.findContours(right_dilate.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE))
 
-    x, y = find_circle_info(left_cont)
+    x, y, rad_l = find_circle_info(left_cont)
     left_circle = [x, y]
 
-    x, y = find_circle_info(right_cont)
+    x, y, rad_r = find_circle_info(right_cont)
     right_circle = [x, y]
 
     left_disp = left_frame.copy()
@@ -107,15 +112,66 @@ while True:
         left_obj_dist = cv.perspectiveTransform(left_dist_points, Q)
         right_obj_dist = cv.perspectiveTransform(right_dist_points, Q)
 
-        cv.circle(left_disp, (left_circle[0], left_circle[1]), 2, (0, 255, 0), -1)
-        cv.circle(right_disp, (right_circle[0], right_circle[1]), 2, (0, 255, 0), -1)
+        pos_to_catcher = left_obj_dist - camera_to_catcher
+
+        points.append(pos_to_catcher[0][0])
+
+        cv.circle(left_disp, (left_circle[0], left_circle[1]), rad_l, (0, 255, 0), 2)
+        cv.circle(right_disp, (right_circle[0], right_circle[1]), rad_r, (0, 255, 0), 2)
 
         cv.putText(left_disp, f'({int(left_obj_dist[0][0][0])} in, {int(left_obj_dist[0][0][1])} in, {int(left_obj_dist[0][0][2]/12)} ft)', (left_circle[0]-50, left_circle[1]-10), cv.QT_FONT_NORMAL, .6, (0, 0, 255), 1, cv.LINE_AA)
         cv.putText(right_disp, f'({int(right_obj_dist[0][0][0])} in, {int(right_obj_dist[0][0][1])} in, {int(right_obj_dist[0][0][2]/12)} ft)', (right_circle[0]-50, right_circle[1]-10), cv.QT_FONT_NORMAL, .6, (0, 0, 255), 1, cv.LINE_AA)
+        cv.putText(left_disp, f'({int(pos_to_catcher[0][0][0])} in, {int(pos_to_catcher[0][0][1])} in, {int(pos_to_catcher[0][0][2]/12)} ft)', (10, 60), cv.QT_FONT_NORMAL, .6, (0, 0, 255), 1, cv.LINE_AA)
+        cv.putText(left_disp, f'Useable Frames: {len(points)}', (10, 30), cv.QT_FONT_NORMAL, .6, (0, 0, 255), 1, cv.LINE_AA)
     else:
         var_delay = fast_forward
+        if len(points) > 0:
+            counter += 1
+            points = np.asarray(points)
 
-    cv.imshow('left', left_disp)
-    cv.imshow('right', right_disp)
+            temp_z = np.linspace(min(points[:, 2]), max(points[:, 2]), len(points))
+            x_coeffs = np.polyfit(points[:, 2], points[:, 0], 2)
+            p = np.poly1d(x_coeffs)
+            x_fit = p(temp_z)
+            x_guess = p(0)
+            y_coeffs = np.polyfit(points[:, 2], points[:, 1], 2)
+            p = np.poly1d(y_coeffs)
+            y_fit = p(temp_z)
+            y_guess = p(0)
+            impact_guess = [x_guess, y_guess]
+            print(f'Set {counter}:\nPoints:\n{points}\nImpact guess: ({impact_guess[0]}, {impact_guess[1]})\n')
+            file_out.write(f'Set {counter}:\nPoints:\n{points}\nImpact guess: ({impact_guess[0]}, {impact_guess[1]})\n\n')
 
+            fig = plt.figure(1)
+            plt.subplot(121)
+            plt.scatter(points[:, 2], points[:, 0])
+            plt.plot(temp_z, x_fit, 'r')
+            ax = plt.gca()
+            ax.invert_xaxis()
+            plt.ylabel('X position relative to catcher (inches)')
+            plt.xlabel('Z position relative to catcher (inches)')
+            plt.grid('on')
+            plt.subplot(122)
+            plt.scatter(points[:, 2], points[:, 1])
+            plt.plot(temp_z, y_fit, 'r')
+            ax = plt.gca()
+            ax.invert_xaxis()
+            ax.invert_yaxis()
+            plt.ylabel('Y position relative to catcher (inches)')
+            plt.xlabel('Z position relative to catcher (inches)')
+            plt.grid('on')
+            figname = '3-set' + str(counter) + 'plot.png'
+            plt.savefig(figname)
+            plt.close(1)
+
+            points = []
+
+    mask = np.hstack([left_dilate, right_dilate])
+    display = np.hstack([left_disp, right_disp])
+
+    cv.imshow('masked', mask)
+    cv.imshow('detected', display)
+
+cv.destroyAllWindows()
+file_out.close()
 exit()
