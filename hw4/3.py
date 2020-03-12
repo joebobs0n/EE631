@@ -148,8 +148,8 @@ while True:
             plt.plot(temp_z, x_fit, 'r')
             ax = plt.gca()
             ax.invert_xaxis()
-            plt.ylabel('X position relative to catcher (inches)')
-            plt.xlabel('Z position relative to catcher (inches)')
+            plt.ylabel('X position relative to catcher (in)')
+            plt.xlabel('Z position relative to catcher (in)')
             plt.grid('on')
             plt.subplot(122)
             plt.scatter(points[:, 2], points[:, 1])
@@ -157,10 +157,12 @@ while True:
             ax = plt.gca()
             ax.invert_xaxis()
             ax.invert_yaxis()
-            plt.ylabel('Y position relative to catcher (inches)')
-            plt.xlabel('Z position relative to catcher (inches)')
+            plt.ylabel('Y position relative to catcher (in)')
+            plt.xlabel('Z position relative to catcher (in)')
             plt.grid('on')
-            figname = '3-set' + str(counter) + 'plot.png'
+            plt.subplots_adjust(top=0.91, wspace=0.4)
+            fig.suptitle(f'Impact Guess: ({np.around(impact_guess[0], 3)}, {np.around(impact_guess[1], 3)})')
+            figname = '3-set' + str(counter).zfill(2) + '_plot.png'
             plt.savefig(figname)
             plt.close(1)
 
