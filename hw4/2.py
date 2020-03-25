@@ -1,6 +1,10 @@
 import cv2 as cv
 import numpy as np
 import imutils
+import os
+import sys
+
+os.chdir(sys.path[0])
 
 cap_left = cv.VideoCapture('resources/footage_left.avi')
 cap_right = cv.VideoCapture('resources/footage_right.avi')

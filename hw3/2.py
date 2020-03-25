@@ -1,6 +1,10 @@
 import cv2 as cv
 import numpy as np
 import glob
+import os
+import sys
+
+os.chdir(sys.path[0])
 
 left = np.load('left_params.npz')
 right = np.load('right_params.npz')

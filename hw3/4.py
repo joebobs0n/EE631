@@ -1,5 +1,9 @@
 import cv2 as cv
 import numpy as np
+import os
+import sys
+
+os.chdir(sys.path[0])
 
 image_l = cv.imread('images/stereo/left/stereo_L0.png')
 image_r = cv.imread('images/stereo/right/stereo_R0.png')

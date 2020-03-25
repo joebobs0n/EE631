@@ -1,5 +1,9 @@
 import cv2 as cv
 import numpy as np
+import os
+import sys
+
+os.chdir(sys.path[0])
 
 chessboard_dims = (10, 7)
 criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)

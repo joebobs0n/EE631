@@ -2,6 +2,10 @@ import cv2 as cv
 import numpy as np
 import imutils
 import matplotlib.pyplot as plt
+import os
+import sys
+
+os.chdir(sys.path[0])
 
 chessboard_dims = [10, 7]
 
@@ -119,8 +123,8 @@ while True:
         cv.circle(left_disp, (left_circle[0], left_circle[1]), rad_l, (0, 255, 0), 2)
         cv.circle(right_disp, (right_circle[0], right_circle[1]), rad_r, (0, 255, 0), 2)
 
-        cv.putText(left_disp, f'({int(left_obj_dist[0][0][0])} in, {int(left_obj_dist[0][0][1])} in, {int(left_obj_dist[0][0][2]/12)} ft)', (left_circle[0]-50, left_circle[1]-10), cv.QT_FONT_NORMAL, .6, (0, 0, 255), 1, cv.LINE_AA)
-        cv.putText(right_disp, f'({int(right_obj_dist[0][0][0])} in, {int(right_obj_dist[0][0][1])} in, {int(right_obj_dist[0][0][2]/12)} ft)', (right_circle[0]-50, right_circle[1]-10), cv.QT_FONT_NORMAL, .6, (0, 0, 255), 1, cv.LINE_AA)
+        cv.putText(left_disp, f'({int(left_obj_dist[0][0][0])} in, {int(left_obj_dist[0][0][1])} in, {int(left_obj_dist[0][0][2]/12)} ft)', (left_circle[0]-10, left_circle[1]-15), cv.QT_FONT_NORMAL, .5, (0, 0, 255), 1, cv.LINE_AA)
+        cv.putText(right_disp, f'({int(right_obj_dist[0][0][0])} in, {int(right_obj_dist[0][0][1])} in, {int(right_obj_dist[0][0][2]/12)} ft)', (right_circle[0]-10, right_circle[1]-15), cv.QT_FONT_NORMAL, .5, (0, 0, 255), 1, cv.LINE_AA)
         cv.putText(left_disp, f'({int(pos_to_catcher[0][0][0])} in, {int(pos_to_catcher[0][0][1])} in, {int(pos_to_catcher[0][0][2]/12)} ft)', (10, 60), cv.QT_FONT_NORMAL, .6, (0, 0, 255), 1, cv.LINE_AA)
         cv.putText(left_disp, f'Useable Frames: {len(points)}', (10, 30), cv.QT_FONT_NORMAL, .6, (0, 0, 255), 1, cv.LINE_AA)
     else:
