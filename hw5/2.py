@@ -7,6 +7,17 @@ os.chdir(sys.path[0])
 
 cam = cv.VideoCapture('resources/desktop.mp4')
 
+run, frame_prev = cam.read()
+gray_prev = cv.cvtColor(frame_prev, cv.COLOR_BGR2GRAY)
+frame_shape = np.flip(np.shape(gray_prev))
+skip_frames = 10  # iterate through for 0, 2, 5, 10
+orig_prev = (890, 305)
+tmpl_dims = (150, 100)
+tmpl_prev = frame_prev[orig_prev[1]:orig_prev[1]+tmpl_dims[1], orig_prev[0]:orig_prev[0]+tmpl_dims[0]]
+pts_prev = cv.goodFeaturesToTrack(cv.cvtColor(tmpl_prev, cv.COLOR_BGR2GRAY), maxCorners=10, qualityLevel=0.01, minDistance=5)
+
+out_vid = cv.VideoWriter(f'results/2-skip{skip_frames}.avi', cv.VideoWriter_fourcc('M', 'J', 'P', 'G'), 30/(skip_frames if skip_frames != 0 else 1), tuple(frame_shape))
+
 def drawOpticalFlow(frame, prevPts, nxtPts, prevOrig=(0, 0), nxtOrig=(0, 0)):
     prevPts = prevPts.reshape(-1, 2)
     nxtPts = nxtPts.reshape(-1, 2)
@@ -42,16 +53,6 @@ def getFrame(num_skip):
             else:
                 skipped += 1
     return ret, last, frame, skipped
-
-run, frame_prev = cam.read()
-gray_prev = cv.cvtColor(frame_prev, cv.COLOR_BGR2GRAY)
-frame_shape = np.flip(np.shape(gray_prev))
-skip_frames = 2  # iterate through for 0, 2, 5, 10
-out_vid = cv.VideoWriter(f'results/2-skip{skip_frames}.avi', cv.VideoWriter_fourcc('M', 'J', 'P', 'G'), 30/(skip_frames if skip_frames != 0 else 1), tuple(frame_shape))
-orig_prev = (890, 305)
-tmpl_dims = (150, 100)
-tmpl_prev = frame_prev[orig_prev[1]:orig_prev[1]+tmpl_dims[1], orig_prev[0]:orig_prev[0]+tmpl_dims[0]]
-pts_prev = cv.goodFeaturesToTrack(cv.cvtColor(tmpl_prev, cv.COLOR_BGR2GRAY), maxCorners=10, qualityLevel=0.01, minDistance=5)
 
 while run:
     ret, last, frame_next, skipped = getFrame(skip_frames)
