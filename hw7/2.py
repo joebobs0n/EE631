@@ -64,7 +64,7 @@ frame_nums = np.linspace(1, len(d), num=len(d))
 coeffs = np.polyfit(frame_nums, d, 1)
 p = np.poly1d(coeffs)
 x_fit = p(frame_nums)
-x_guess = np.mean([p(0), np.roots(coeffs) * dist_per_frame])
+x_guess = np.mean([p(0), np.roots(coeffs)[0] * dist_per_frame])
 
 fig = plt.figure(1)
 plt.scatter(frame_nums, d)
