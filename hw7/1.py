@@ -7,6 +7,8 @@ import sys
 
 os.chdir(sys.path[0])
 
+print('Starting task 1...')
+
 pics = glob.glob('resources/images/*.jpg')
 
 frame_prev = cv.imread(pics[0])
@@ -31,7 +33,7 @@ tau = []
 while True:
     if it >= len(pics):
         break
-    
+
     frame_next = cv.imread(pics[it])
     it += 1
 
@@ -51,9 +53,8 @@ while True:
             a.append(x_ / x)
     a = np.mean(a)
     tau_ = a / (a - 1)
-    print(tau_)
     tau.append(tau_)
-    
+
     gray_prev = gray_next.copy()
     pts_prev = pts_next.copy()
 
@@ -62,7 +63,6 @@ coeffs = np.polyfit(frame_nums, tau, 1)
 p = np.poly1d(coeffs)
 x_fit = p(frame_nums)
 x_guess = p(0)
-print(x_guess)
 
 fig = plt.figure(1)
 plt.scatter(frame_nums, tau)
@@ -75,4 +75,5 @@ plt.savefig('results/1-frame_estimate.png')
 plt.close(1)
 
 cv.destroyAllWindows()
+print('Done.')
 exit()
