@@ -54,27 +54,27 @@ while True:
             a.append(x_ / x)
     a = np.mean(a)
     d_ = (a / (a - 1)) * dist_per_frame
+    print(f'frames {it-1} and {it}: a={a} | d={d_}')
     d.append(d_)
 
     gray_prev = gray_next.copy()
     pts_prev = pts_next.copy()
 
-frame_nums = np.linspace(1, len(d), num=len(d)) * dist_per_frame
+frame_nums = np.linspace(1, len(d), num=len(d))
 coeffs = np.polyfit(frame_nums, d, 1)
 p = np.poly1d(coeffs)
 x_fit = p(frame_nums)
-x_guess = p(0)
+x_guess = np.mean([p(0), np.roots(coeffs) * dist_per_frame])
 
 fig = plt.figure(1)
 plt.scatter(frame_nums, d)
 plt.plot(frame_nums, x_fit, 'r')
 plt.grid('on')
-plt.xlabel('Distance (mm)')
-plt.ylabel('Estimated Distance to Impact')
+plt.xlabel('Frame Number')
+plt.ylabel('Estimated Distance to Impact (mm)')
 plt.title(f'Distance to Impact = {x_guess} mm')
 plt.savefig('results/2-frame_estimate.png')
 plt.close(1)
 
-cv.destroyAllWindows()
 print('Done.')
 exit()

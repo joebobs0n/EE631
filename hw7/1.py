@@ -53,6 +53,7 @@ while True:
             a.append(x_ / x)
     a = np.mean(a)
     tau_ = a / (a - 1)
+    print(f'frames {it-1} and {it}: a={a} | tau={tau_}')
     tau.append(tau_)
 
     gray_prev = gray_next.copy()
@@ -62,7 +63,7 @@ frame_nums = np.linspace(1, len(tau), num=len(tau))
 coeffs = np.polyfit(frame_nums, tau, 1)
 p = np.poly1d(coeffs)
 x_fit = p(frame_nums)
-x_guess = p(0)
+x_guess = np.mean([p(0), np.roots(coeffs)])
 
 fig = plt.figure(1)
 plt.scatter(frame_nums, tau)
@@ -74,6 +75,5 @@ plt.title(f'Number of Frames to Impact = {x_guess}')
 plt.savefig('results/1-frame_estimate.png')
 plt.close(1)
 
-cv.destroyAllWindows()
 print('Done.')
 exit()
