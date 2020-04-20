@@ -25,3 +25,5 @@ hw6/resources/picture_wall.mp4
 hw6/results/1-reference-pts.jpg
 hw6/results/2-matches.avi
 hw6/results/2-superimposed.avi
+object_detection/results/2-object_detect.avi
+object_detection/results/1-match.jpg
